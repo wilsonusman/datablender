@@ -75,6 +75,6 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Contact
 
-Wilson - [@yourtwitter](https://twitter.com/wilsonusmanjr) - email@example.com
+Wilson - [@wilsonusmanjr](https://twitter.com/wilsonusmanjr)
 
 Project Link: [https://github.com/wilsonusman/data-blender](https://github.com/wilsonusman/data-blender)
