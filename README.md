@@ -4,7 +4,7 @@ Data Blender is a web-based tool that allows users to easily combine multiple Ex
 
 ![Data Blender Demo](path/to/demo.gif)
 
-![Data Blender](datablender.png)
+![Data Blender](assets/datablender.png)
 
 
 
