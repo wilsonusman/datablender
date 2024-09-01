@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Blender</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#3B82F6', // Blue-500
+                    },
+                    backgroundImage: {
+                        'gradient-accent': 'linear-gradient(to right, #2563EB, #3B82F6)', // Blue-600 to Blue-500
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hover-gradient:hover {
+            background-image: linear-gradient(to right, #1D4ED8, #2563EB);
+            /* Darker gradient on hover */
+        }
+
+        .progress-gradient {
+            background: linear-gradient(to right, #4ADE80, #22C55E);
+            /* Light green to dark green */
+            background-size: 200% 100%;
+        }
+    </style>
+</head>
+
+<body class="bg-white min-h-screen">
+    <div class="container mx-auto p-6">
+        <div class="flex items-center mb-6">
+            <svg class="w-12 h-12 mr-4" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="10" width="80" height="80" fill="#000000" />
+                <circle cx="50" cy="50" r="30" fill="#ffffff" />
+                <path d="M35 50L65 50" stroke="#000000" stroke-width="8" stroke-linecap="round" />
+                <path d="M50 35L50 65" stroke="#000000" stroke-width="8" stroke-linecap="round" />
+                <circle cx="50" cy="50" r="5" fill="#000000" />
+            </svg>
+
+            <h1 class="text-3xl font-bold text-black">Data Blender</h1>
+        </div>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div id="messageArea" class="mb-4 hidden">
+                <div id="messageContent" class="p-4 rounded"></div>
+            </div>
+            <form id="uploadForm" class="mb-4">
+                <div class="mb-4">
+                    <div id="dropZone"
+                        class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors">
+                        <p class="text-gray-600 mb-2">Drag and drop files here</p>
+                        <p class="text-gray-500 text-sm mb-4">or</p>
+                        <button type="button" id="chooseFileBtn"
+                            class="bg-gradient-accent hover-gradient text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-accent">
+                            Choose files
+                        </button>
+                        <input class="hidden" id="fileInput" type="file" multiple accept=".xlsx,.xls,.csv,.tsv,.xml">
+                    </div>
+                    <div id="fileList" class="mt-4 space-y-2"></div>
+                </div>
+
+                <div id="tabSection" class="mb-4 hidden">
+                    <label class="block text-black text-sm font-bold mb-2">
+                        Select Tab
+                    </label>
+                    <div id="tabPills" class="flex flex-wrap gap-2">
+                        <!-- Tab pills will be added here dynamically -->
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="combineButton"
+                        class="bg-gradient-accent hover-gradient text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-accent"
+                        type="submit">
+                        Combine Files
+                    </button>
+                    <button id="resetButton"
+                        class="bg-gray-200 hover:bg-gray-300 text-black font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-400 hidden"
+                        type="button">
+                        Start Over
+                    </button>
+                </div>
+            </form>
+
+            <div id="progressBarContainer" class="hidden mt-4">
+                <div class="relative pt-1">
+                    <div class="flex mb-2 items-center justify-between">
+                        <div>
+                            <span id="progressText"
+                                class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
+                                0%
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <span id="progressStatus" class="text-xs font-semibold inline-block text-green-600">
+                                Processing...
+                            </span>
+                        </div>
+                    </div>
+                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-green-200">
+                        <div id="progressBar"
+                            class="progress-gradient rounded h-2 w-0 transition-all duration-300 ease-out"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New section explaining the steps -->
+        <div class="mt-8 mb-6 bg-gray-100 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-black mb-4">How to use Data Blender:</h3>
+            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                <li>Drag and drop your Excel files into the area above, or click "Choose files" to select them.</li>
+                <li>Once files are uploaded, select the tab you want to combine from the options that appear.</li>
+                <li>Click the "Combine Files" button to merge your selected files and tabs.</li>
+                <li>Wait for the process to complete. The progress bar will show the current status.</li>
+                <li>Once complete, your combined file will appear in the "Recent Combined Files" section below.</li>
+                <li>Click the "Download" link next to your file to save it to your computer.</li>
+            </ol>
+            <p class="mt-4 text-sm text-gray-600">Note: Make sure all selected files have the same structure in the
+                chosen tab for best results.</p>
+        </div>
+
+        <div class="bg-white shadow-md rounded px-8 pt-6 pb-8">
+            <h2 class="text-xl font-bold mb-4 text-black">Recent Combined Files</h2>
+            <table class="w-full">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 text-left text-black">Filename</th>
+                        <th class="px-4 py-2 text-left text-black">Timestamp</th>
+                        <th class="px-4 py-2 text-left text-black">Files Combined</th>
+                        <th class="px-4 py-2 text-left text-black">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="jobsTable">
+                    <!-- Jobs will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const fileInput = document.getElementById('fileInput');
+            const dropZone = document.getElementById('dropZone');
+            const chooseFileBtn = document.getElementById('chooseFileBtn');
+            const fileList = document.getElementById('fileList');
+            const tabPills = document.getElementById('tabPills');
+            const uploadForm = document.getElementById('uploadForm');
+            const jobsTable = document.getElementById('jobsTable');
+            const messageArea = document.getElementById('messageArea');
+            const messageContent = document.getElementById('messageContent');
+            const tabSection = document.getElementById('tabSection');
+            const resetButton = document.getElementById('resetButton');
+            const combineButton = document.getElementById('combineButton');
+            const progressBarContainer = document.getElementById('progressBarContainer');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progressStatus = document.getElementById('progressStatus');
+
+            let selectedTab = null;
+            let ws = null;
+            const clientId = 'client_' + Math.random().toString(36).substr(2, 9);
+
+            function showMessage(message, isError = false) {
+                messageArea.classList.remove('hidden');
+                messageContent.textContent = message;
+                messageContent.className = isError
+                    ? 'p-4 rounded bg-red-100 text-red-700'
+                    : 'p-4 rounded bg-gradient-accent bg-opacity-10 text-accent';
+                setTimeout(() => {
+                    messageArea.classList.add('hidden');
+                }, 5000);
+            }
+
+            function hideMessage() {
+                messageArea.classList.add('hidden');
+            }
+
+            function updateProgressBar(progress) {
+                progressBar.style.width = `${progress}%`;
+                progressText.textContent = `${progress}%`;
+            }
+
+            function hideProgressBar() {
+                progressBarContainer.classList.add('hidden');
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+                progressStatus.textContent = 'Processing...';
+                progressStatus.classList.remove('text-red-600');
+                progressStatus.classList.add('text-green-600');
+            }
+
+            function connectWebSocket() {
+                ws = new WebSocket(`ws://${window.location.host}/ws/${clientId}`);
+                ws.onmessage = function (event) {
+                    const data = JSON.parse(event.data);
+                    if (data.progress !== undefined) {
+                        updateProgressBar(data.progress);
+                    }
+                };
+                ws.onclose = function () {
+                    setTimeout(connectWebSocket, 1000);
+                };
+            }
+
+            connectWebSocket();
+
+            function handleFiles(files) {
+                fileList.innerHTML = '';
+                for (let file of files) {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'flex items-center justify-between bg-gray-100 p-2 rounded';
+                    fileItem.innerHTML = `
+                        <span class="text-sm text-black">${file.name}</span>
+                        <button type="button" class="text-red-500 hover:text-red-700">Remove</button>
+                    `;
+                    fileItem.querySelector('button').onclick = () => {
+                        fileItem.remove();
+                        updateFileInput();
+                    };
+                    fileList.appendChild(fileItem);
+                }
+                updateFileInput();
+            }
+
+            function updateFileInput() {
+                const dt = new DataTransfer();
+                fileList.querySelectorAll('div').forEach(item => {
+                    const fileName = item.querySelector('span').textContent;
+                    const file = Array.from(fileInput.files).find(f => f.name === fileName);
+                    if (file) dt.items.add(file);
+                });
+                fileInput.files = dt.files;
+            }
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('border-accent');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('border-accent');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('border-accent');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            chooseFileBtn.addEventListener('click', () => fileInput.click());
+
+            fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+            fileInput.addEventListener('change', async function () {
+                if (fileInput.files.length === 0) {
+                    showMessage('Please select at least one file', true);
+                    tabSection.classList.add('hidden');
+                    resetButton.classList.add('hidden');
+                    combineButton.classList.remove('hidden');
+                    return;
+                }
+
+                const formData = new FormData();
+                for (let file of fileInput.files) {
+                    formData.append('files', file);
+                }
+
+                try {
+                    const response = await fetch('/get_tabs', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    tabPills.innerHTML = '';
+                    data.tabs.forEach(tab => {
+                        const pill = document.createElement('button');
+                        pill.type = 'button';
+                        pill.textContent = tab;
+                        pill.className = 'px-3 py-1 rounded-full text-sm font-semibold text-black bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-accent';
+                        pill.addEventListener('click', function () {
+                            selectedTab = tab;
+                            tabPills.querySelectorAll('button').forEach(p => {
+                                p.classList.remove('bg-gradient-accent', 'text-white');
+                                p.classList.add('bg-gray-200', 'text-black');
+                            });
+                            pill.classList.remove('bg-gray-200', 'text-black');
+                            pill.classList.add('bg-gradient-accent', 'text-white');
+                        });
+                        tabPills.appendChild(pill);
+                    });
+
+                    // Show the tab section after successfully fetching tabs
+                    tabSection.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error fetching tabs:', error);
+                    showMessage('Error fetching tabs. Please try again.', true);
+                    tabSection.classList.add('hidden');
+                }
+            });
+
+            function resetForm() {
+                fileInput.value = '';
+                fileList.innerHTML = '';
+                tabSection.classList.add('hidden');
+                tabPills.innerHTML = '';
+                selectedTab = null;
+                resetButton.classList.add('hidden');
+                combineButton.classList.remove('hidden');
+                // Reset progress bar if it exists
+                if (document.getElementById('progressBarContainer')) {
+                    document.getElementById('progressBarContainer').classList.add('hidden');
+                    document.getElementById('progressTextContainer').classList.add('hidden');
+                }
+            }
+
+            resetButton.addEventListener('click', resetForm);
+
+            uploadForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                if (fileInput.files.length === 0) {
+                    showMessage('Please select at least one file', true);
+                    return;
+                }
+
+                if (!selectedTab) {
+                    showMessage('Please select a tab', true);
+                    return;
+                }
+
+                try {
+                    progressBarContainer.classList.remove('hidden');
+                    updateProgressBar(0);
+                    progressStatus.textContent = 'Processing...';
+                    hideMessage(); // Clear any existing messages
+
+                    const formData = new FormData();
+                    for (let file of fileInput.files) {
+                        formData.append('files', file);
+                    }
+                    formData.append('tab_name', selectedTab);
+                    formData.append('client_id', clientId);
+
+                    const response = await fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    if (result.error) {
+                        showMessage(result.error, true);
+                        progressStatus.textContent = 'Error';
+                        progressStatus.classList.remove('text-green-600');
+                        progressStatus.classList.add('text-red-600');
+                    } else {
+                        // Files combined successfully
+                        hideProgressBar(); // Immediately hide the progress bar
+                        hideMessage(); // Ensure no message is shown
+                        loadJobs();
+                        resetButton.classList.remove('hidden');
+                        combineButton.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error('Error uploading files:', error);
+                    showMessage('Error uploading files. Please try again.', true);
+                    progressStatus.textContent = 'Error';
+                    progressStatus.classList.remove('text-green-600');
+                    progressStatus.classList.add('text-red-600');
+                }
+            });
+
+            async function loadJobs() {
+                try {
+                    const response = await fetch('/jobs');
+                    const jobs = await response.json();
+
+                    jobsTable.innerHTML = '';
+                    jobs.reverse().forEach(job => {
+                        const row = document.createElement('tr');
+                        const timestamp = new Date(job.timestamp);
+                        const formattedTimestamp = timestamp.toLocaleString();
+                        row.innerHTML = `
+                            <td class="border px-4 py-2 text-black">${job.filename}</td>
+                            <td class="border px-4 py-2 text-black">${formattedTimestamp}</td>
+                            <td class="border px-4 py-2 text-black">${job.files_combined}</td>
+                            <td class="border px-4 py-2">
+                                <a href="/download/${job.id}" class="text-accent hover:text-accent/80" download>Download</a>
+                            </td>
+                        `;
+                        jobsTable.appendChild(row);
+                    });
+                } catch (error) {
+                    console.error('Error loading jobs:', error);
+                    showMessage('Error loading jobs. Please refresh the page.', true);
+                }
+            }
+
+            loadJobs();
+        });
+    </script>
+</body>
+
+</html>
